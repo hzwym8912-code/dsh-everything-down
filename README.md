@@ -1,8 +1,22 @@
 # Everything down
-<img width="992" height="870" alt="屏幕截图 2026-10-29 102732" src="https://github.com/user-attachments/assets/add4122e-b657-4b29-8380-adb5ad22356a" />
+<img width="992" alt="Everything down 面板" src="https://github.com/user-attachments/assets/add4122e-b657-4b29-8380-adb5ad22356a" />
 
 
 抖音、快手短视频无水印下载，带本地面板。
+
+## 安装
+
+目前还没上架插件市场，手动装一次就行：
+
+1. 把仓库下载到本地（`git clone`，或网页上 Download ZIP 解压）
+2. 进入 DSH 的 profile 目录（一般是 `~/.dsh/profiles/desktop`），执行：
+   ```
+   pnpm add link:<解压后的目录>
+   ```
+3. 打开该目录的 `package.json`，在 `dsh.profile.bundles` 数组末尾加一行 `"dsh-everything-down"`
+4. 重启客户端，设置左侧就会出现 **Everything down**
+
+> Chrome、ffmpeg、yt-dlp 这些依赖不用手动装，面板「设置 → 环境依赖」里能看到状态和安装命令。
 
 ## 打开
 
