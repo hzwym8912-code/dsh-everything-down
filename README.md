@@ -1,5 +1,6 @@
 # Everything down
-<img width="995" height="977" alt="面板显示" src="https://github.com/user-attachments/assets/50d411ef-3e0b-4657-ae3c-8783ba216aa8" />
+<img width="992" height="870" alt="屏幕截图 2026-10-29 102732" src="https://github.com/user-attachments/assets/add4122e-b657-4b29-8380-adb5ad22356a" />
+
 
 抖音、快手短视频无水印下载，带本地面板。
 
