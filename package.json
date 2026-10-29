@@ -1,6 +1,6 @@
 {
   "name": "dsh-everything-down",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "description": "Everything down —— 抖音/快手等短视频无水印下载，带本地面板（单条解析、作者主页批量、下载队列、语音转写）。",
   "private": true,
   "type": "module",
