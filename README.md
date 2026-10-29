@@ -13,6 +13,11 @@
    ```
    pnpm add link:<解压后的目录>
    ```
+   > ⚠️ 如果你的 profile 里已经用「插件市场」装过别的插件，这一步可能把它们挪进
+   > `node_modules/.ignored`（它们不在 dependencies 里，pnpm 会当成多余）。装之前先备份整个
+   > profile 目录，装完打开客户端确认别的插件还在；不在的话把 `.ignored` 里的目录移回
+   > `node_modules` 对应位置即可。
+
    没装过 pnpm 的话，用客户端自带的那个：
    ```
    node "<客户端安装目录>/resources/runtime/pnpm/bin/pnpm.mjs" add link:<解压后的目录>
