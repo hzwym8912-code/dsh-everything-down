@@ -27,6 +27,26 @@
 
 > Chrome、ffmpeg、yt-dlp 这些依赖不用手动装，面板「设置 → 环境依赖」里能看到状态和安装命令。
 
+## 手动安装 / 彻底卸载（推荐）
+
+不想让 `pnpm add` 动到别的插件，用仓库里自带的两个脚本。它们只改 `package.json`
+（改前自动备份）并建一个目录链接，不重写 `pnpm-lock.yaml`，也不碰其它插件。
+
+安装：
+
+```
+powershell -ExecutionPolicy Bypass -File scripts\install.ps1
+```
+
+彻底卸载（连同设置、任务记录、文稿一起删，加 `-PurgeData`；只想移除插件就不加）：
+
+```
+powershell -ExecutionPolicy Bypass -File scripts\uninstall.ps1 -PurgeData
+```
+
+两个脚本跑完都要重启客户端。默认 profile 是 `%USERPROFILE%\.dsh\profiles\desktop`，
+放在别处就加 `-Profile <目录>`。
+
 ## 打开
 
 重启客户端后访问 **http://127.0.0.1:7788**（插件在宿主内启动服务）。
