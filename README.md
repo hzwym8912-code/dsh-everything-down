@@ -13,6 +13,10 @@
    ```
    pnpm add link:<解压后的目录>
    ```
+   没装过 pnpm 的话，用客户端自带的那个：
+   ```
+   node "<客户端安装目录>/resources/runtime/pnpm/bin/pnpm.mjs" add link:<解压后的目录>
+   ```
 3. 打开该目录的 `package.json`，在 `dsh.profile.bundles` 数组末尾加一行 `"dsh-everything-down"`
 4. 重启客户端，设置左侧就会出现 **Everything down**
 
