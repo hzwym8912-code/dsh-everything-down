@@ -1,0 +1,5 @@
+# Everything down bundle patch：把宿主插件行插入 profile 插件表。
+# 安装用 dsh plugin add 或 pnpm link，不要重复插入（重复 id 会崩 loader）。
+- insert:
+    - id: dsh-everything-down
+      name: 'dsh-everything-down'

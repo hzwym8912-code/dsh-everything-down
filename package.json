@@ -1,0 +1,36 @@
+{
+  "name": "dsh-everything-down",
+  "version": "0.3.4",
+  "description": "Everything down —— 抖音/快手等短视频无水印下载，带本地面板（单条解析、作者主页批量、下载队列、语音转写）。",
+  "private": true,
+  "type": "module",
+  "main": "lib/index.js",
+  "bin": {
+    "everything-down": "bin/panel.js"
+  },
+  "exports": {
+    ".": "./lib/index.js",
+    "./server": "./lib/server.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "bin",
+    "cordis.patch.yml",
+    "README.md"
+  ],
+  "license": "MIT",
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "inject": [
+        "@deepseek-ai/dsh-client-locale",
+        "@deepseek-ai/dsh-client-ui-settings"
+      ],
+      "platform": "web"
+    }
+  }
+}

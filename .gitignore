@@ -1,0 +1,31 @@
+# 依赖与产物
+node_modules/
+dist/
+
+# 调试与测试脚本（含本机路径，别发布）
+_dev/
+
+# 日志
+*.log
+panel*.log
+test*.log
+
+# 备份文件
+*.bak
+*.bak-*
+package.json.bak-client
+package.json.rollback
+lib/*.bak
+lib/*.bak-*
+
+# 系统垃圾
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 内部交接笔记（不发布）
+HANDOFF.md
+
+# 本地配置（如果有）
+.env
+.env.*
