@@ -1,3 +1,4 @@
+<img width="1280" height="1000" alt="新界面-可换README首图" src="https://github.com/user-attachments/assets/1c3573fd-0e31-49d7-9cb0-e5c4d0a28370" />
 # Everything down
 <img width="992" alt="Everything down 面板" src="https://github.com/user-attachments/assets/add4122e-b657-4b29-8380-adb5ad22356a" />
 
