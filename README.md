@@ -27,6 +27,55 @@
 
 > Chrome、ffmpeg、yt-dlp 这些依赖不用手动装，面板「设置 → 环境依赖」里能看到状态和安装命令。
 
+## 给别的 AI 客户端用（MCP）
+
+仓库自带一个 MCP 服务（`bin/mcp.js`），Codex、WorkBuddy、Claude Desktop、Cursor 这类
+支持 MCP 的客户端都能挂上。它只做“遥控器”：解析、下载、队列、转写全部交给本机面板，
+不会另起一套队列，所以批量下载和面板里完全一致。
+
+**挂上之后可用的工具**
+
+| 工具 | 干什么 |
+| --- | --- |
+| `ed_panel` | 拿面板地址（没启动就自动拉一个） |
+| `ed_parse` | 解析一条链接，看标题/平台/时长 |
+| `ed_download` | 一条加入下载队列 |
+| `ed_batch` | 多行链接一次入队 |
+| `ed_tasks` | 看进度、重试、移除、打开文件夹 |
+| `ed_author` | 抖音作者主页列表 / 整号批量下载 |
+| `ed_gallery` | 解析图文（图集），返回图片地址 |
+| `ed_gallery_download` | 把图文里的图片存到本地 |
+| `ed_settings` | 查看 / 修改设置 |
+
+> 下面两种只配一个：配置是每个客户端各存一份，不存在全局生效。
+
+**Codex CLI**（`~/.codex/config.toml`）：
+
+```toml
+[mcp_servers.everything-down]
+command = "node"
+args = ["<插件目录>/bin/mcp.js"]
+```
+
+**通用 JSON**（Claude Desktop / Cursor / WorkBuddy 等）：
+
+```json
+{
+  "mcpServers": {
+    "everything-down": {
+      "command": "node",
+      "args": ["<插件目录>/bin/mcp.js"]
+    }
+  }
+}
+```
+
+把 `<插件目录>` 换成插件所在路径（Windows 注意用双反斜杠或正斜杠）。
+客户端启动 MCP 时如果找不到 `node`，把它换成 node 的绝对路径。
+
+> 这条链路同样依赖 Chrome / ffmpeg / yt-dlp；缺了会在工具返回里提示。
+> 需要扫码登录抖音的话，先 `ed_panel` 拿地址，在浏览器里打开点「登录抖音」。
+
 ## 手动安装 / 彻底卸载（推荐）
 
 不想让 `pnpm add` 动到别的插件，用仓库里自带的两个脚本。它们只改 `package.json`
@@ -74,7 +123,7 @@ node bin/panel.js 7801
 
 ## 图文（图集）
 
-面板第三个区「图文链接」：粘抖音 / 快手 / 小红书的图文（图集）链接，解析出全部图片，
+面板顶部「图文」页：粘抖音 / 快手 / 小红书的图文（图集）链接，解析出全部图片，
 可以只挑几张保存，也可以一次全存。保存到 `保存目录/平台/标题/`，按 01、02 命名。
 
 三家取图方式不一样（都实测过）：抖音抓页面大图并按变体去重、小红书读页面状态里的 imageList、
