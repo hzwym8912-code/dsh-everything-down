@@ -1,63 +1,100 @@
-# Everything down
-<img width="992" alt="Everything down 面板" src="https://github.com/user-attachments/assets/add4122e-b657-4b29-8380-adb5ad22356a" />
+<div align="center">
 
+# Everything Down
 
-抖音、快手短视频无水印下载，带本地面板。
+**贴个链接，无水印视频直接下**
+
+**快手、小红书也能下 —— 这是大多数下载器做不到的**
+
+[![MIT](https://img.shields.io/badge/license-MIT-2ea44f?style=flat-square)](./LICENSE)
+[![Windows](https://img.shields.io/badge/platform-Windows-0078d4?style=flat-square)]()
+[![Node](https://img.shields.io/badge/node-%3E%3D18-339933?style=flat-square)]()
+[![Version](https://img.shields.io/badge/version-0.5.0-f2560d?style=flat-square)]()
+
+<img src="assets/hero.jpg" alt="Everything Down" width="100%" />
+
+<sub>下载 → 归档 → 转文字稿，一条龙。全部在本机完成，视频不上传云端。</sub>
+
+</div>
+
+---
+
+## 为什么选它
+
+能下抖音的下载器很多，**能稳定下快手和小红书的几乎没有**。
+
+这个插件专门啃这两个平台：
+
+- **快手**：桌面页面不播目标视频（只播推荐流），得用移动端分享页 + 微信 UA 才拿得到真视频；
+- **小红书**：直链要带 Referer 才生效，普通请求一律 403；
+- **抖音**：音视频是分开的两条流，下完还得合并。
+
+这些坑都趟过了，代码里每一处都有注释说明为什么这么写。
+
+## 支持平台
+
+| 平台 | 状态 | 备注 |
+| --- | --- | --- |
+| 快手 | ✅ | 移动端分享页，无水印 |
+| 小红书 | ✅ | 桌面页抓流，无水印 |
+| 抖音 | ✅ | 音视频分轨自动合并 |
+| B站 | ✅ | 未登录最高 480P，登录后更高 |
+| 微博 / 西瓜 / X / Instagram / Facebook / YouTube / TikTok | ✅ | 公开内容 |
+| 抖音作者主页 / 图文图集 | ✅ | 抖音、快手、小红书图集 |
+
+> 抖音现在**必须登录**才给解析（未登录会被验证码页拦住）。首页有登录状态条，点「登录抖音」扫码即可。
+
+## 功能
+
+| 功能 | 说明 |
+| --- | --- |
+| **批量粘贴** | 一行一条，一次贴几十条链接，自动识别、一起排队 |
+| **作者主页**（抖音） | 列出博主全部作品，勾选批量下载 |
+| **素材库** | 下载过的自动归档：缩略图网格、搜索、按平台或自建分类筛选 |
+| **博主订阅**（抖音） | 关注博主，检查新作品，一键入队 |
+| **文字稿** | 下载完转文字（默认用本机模型，免费不联网），导出 TXT / SRT / 分镜表 |
+| **转 MP3** | 已下载的视频一键提取音频 |
+| **实时进度** | 速度、剩余时间、断点续传、失败自动重试 |
+| **画质选择** | 最好 / 1080P / 720P / 480P（对 B站、YouTube 等生效） |
+| **打开方式** | 系统播放器 / 剪映 / 自定义程序 |
+| **MCP** | 给 Claude Code、Cursor、Codex 等 AI 客户端调用 |
 
 ## 安装
 
-目前还没上架插件市场，手动装一次就行：
+需要先装好 DSH（DeepSeek Harness）客户端。然后：
 
-1. 把仓库下载到本地（`git clone`，或网页上 Download ZIP 解压）
-2. 进入 DSH 的 profile 目录（一般是 `~/.dsh/profiles/desktop`），执行：
-   ```
-   pnpm add link:<解压后的目录>
-   ```
-   > ⚠️ 如果你的 profile 里已经用「插件市场」装过别的插件，这一步可能把它们挪进
-   > `node_modules/.ignored`（它们不在 dependencies 里，pnpm 会当成多余）。装之前先备份整个
-   > profile 目录，装完打开客户端确认别的插件还在；不在的话把 `.ignored` 里的目录移回
-   > `node_modules` 对应位置即可。
-
-   没装过 pnpm 的话，用客户端自带的那个：
-   ```
-   node "<客户端安装目录>/resources/runtime/pnpm/bin/pnpm.mjs" add link:<解压后的目录>
-   ```
-3. 打开该目录的 `package.json`，在 `dsh.profile.bundles` 数组末尾加一行 `"dsh-everything-down"`
-4. 重启客户端，设置左侧就会出现 **Everything down**
-
-> Chrome、ffmpeg、yt-dlp 这些依赖不用手动装，面板「设置 → 环境依赖」里能看到状态和安装命令。
-
-## 给别的 AI 客户端用（MCP）
-
-仓库自带一个 MCP 服务（`bin/mcp.js`），Codex、WorkBuddy、Claude Desktop、Cursor 这类
-支持 MCP 的客户端都能挂上。它只做“遥控器”：解析、下载、队列、转写全部交给本机面板，
-不会另起一套队列，所以批量下载和面板里完全一致。
-
-**挂上之后可用的工具**
-
-| 工具 | 干什么 |
-| --- | --- |
-| `ed_panel` | 拿面板地址（没启动就自动拉一个） |
-| `ed_parse` | 解析一条链接，看标题/平台/时长 |
-| `ed_download` | 一条加入下载队列 |
-| `ed_batch` | 多行链接一次入队 |
-| `ed_tasks` | 看进度、重试、移除、打开文件夹 |
-| `ed_author` | 抖音作者主页列表 / 整号批量下载 |
-| `ed_gallery` | 解析图文（图集），返回图片地址 |
-| `ed_gallery_download` | 把图文里的图片存到本地 |
-| `ed_settings` | 查看 / 修改设置 |
-
-> 下面两种只配一个：配置是每个客户端各存一份，不存在全局生效。
-
-**Codex CLI**（`~/.codex/config.toml`）：
-
-```toml
-[mcp_servers.everything-down]
-command = "node"
-args = ["<插件目录>/bin/mcp.js"]
+```powershell
+git clone https://github.com/hzwym8912-code/dsh-everything-down.git
+cd dsh-everything-down
+powershell -ExecutionPolicy Bypass -File scripts\install.ps1
 ```
 
-**通用 JSON**（Claude Desktop / Cursor / WorkBuddy 等）：
+装完**重启 DSH 客户端**，设置左侧会出现 **Everything down**，点进去就是完整工作台。
+
+也可以直接访问面板：**http://127.0.0.1:7788**
+
+> 插件本身不打包外部工具，缺了面板「设置 → 环境依赖」会提示。需要的三样：
+> - **Chrome / Edge**（抖音、快手、小红书要开网页抓流）
+> - **ffmpeg**（合并、转码、提取音频）：`winget install Gyan.FFmpeg`
+> - **yt-dlp**（B站、微博等）：`winget install yt-dlp`
+
+卸载（连同设置和任务记录一起删）：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\uninstall.ps1 -PurgeData
+```
+
+## 用法
+
+1. 打开面板 → 左侧「下载台」
+2. 粘贴链接（一行一条，或整段分享文案）
+3. 点「开始解析」或「识别并排队」
+4. 下完的视频进「素材库」，可按平台或自建分类归档
+5. 需要文字稿就点「提取文案」，能导出 TXT / 字幕 SRT / 分镜表
+
+## 给 AI 用（MCP）
+
+`bin/mcp.js` 是一个标准 MCP 服务，Claude Code、Cursor、Codex、WorkBuddy 等都能挂。它只是「遥控器」，解析、下载、队列全部交给本机面板，不会另起一套。
 
 ```json
 {
@@ -70,231 +107,31 @@ args = ["<插件目录>/bin/mcp.js"]
 }
 ```
 
-把 `<插件目录>` 换成插件所在路径（Windows 注意用双反斜杠或正斜杠）。
-客户端启动 MCP 时如果找不到 `node`，把它换成 node 的绝对路径。
+可用工具：`ed_parse`、`ed_download`、`ed_batch`、`ed_tasks`、`ed_author`、`ed_gallery`、`ed_settings`、`ed_panel`。
 
-> 这条链路同样依赖 Chrome / ffmpeg / yt-dlp；缺了会在工具返回里提示。
-> 需要扫码登录抖音的话，先 `ed_panel` 拿地址，在浏览器里打开点「登录抖音」。
+## 常见问题
 
-## 手动安装 / 彻底卸载（推荐）
+**为什么解析不到抖音？**
+抖音现在要求登录。点首页的「登录抖音」扫码，登录态会存在本机，下次直接用。登录态会过期，过期了重新扫一次。
 
-不想让 `pnpm add` 动到别的插件，用仓库里自带的两个脚本。它们只改 `package.json`
-（改前自动备份）并建一个目录链接，不重写 `pnpm-lock.yaml`，也不碰其它插件。
+**快手/小红书要不要登录？**
+不用，公开内容直接能下。
 
-安装：
+**下载的视频在哪？**
+默认 `D:\下载\短视频\{平台名}\`，可以在「设置 → 保存目录」里改。
 
-```
-powershell -ExecutionPolicy Bypass -File scripts\install.ps1
-```
+**能下私密/会员内容吗？**
+不能。只下你自己登录后能看到的公开内容。
 
-彻底卸载（连同设置、任务记录、文稿一起删，加 `-PurgeData`；只想移除插件就不加）：
+**B站为什么只有 480P？**
+未登录的上限。在插件里登录 B站浏览器档案后可以更高。
 
-```
-powershell -ExecutionPolicy Bypass -File scripts\uninstall.ps1 -PurgeData
-```
+## 许可
 
-两个脚本跑完都要重启客户端。默认 profile 是 `%USERPROFILE%\.dsh\profiles\desktop`，
-放在别处就加 `-Profile <目录>`。
+[MIT](./LICENSE)
 
-## 打开
+---
 
-重启客户端后访问 **http://127.0.0.1:7788**（插件在宿主内启动服务）。
-
-独立测试：
-
-```
-node bin/panel.js 7801
-```
-
-## 用法
-
-1. 选平台（自动 / 抖音 / 快手 / 小红书 / B站 / 微博）
-2. 粘贴链接，或整段分享文案（**快手建议粘整段**，标题才准）
-3. 解析 → 下载
-4. 保存目录可在主界面改
-
-## 下载后用什么打开
-
-设置 → 打开方式，可选：系统默认播放器 / 剪映专业版 / 自定义程序（自己挑 exe）。
-队列里那个按钮的文案会跟着变，比如设成剪映就显示「剪映打开」。
-
-剪映路径会自动找（常见目录 + 开始菜单快捷方式，装在 D 盘也能识别）。
-可用内存低于 1.2GB 时会提示先关程序，不开剪映，避免把机器拖死。
-
-## 图文（图集）
-
-面板顶部「图文」页：粘抖音 / 快手 / 小红书的图文（图集）链接，解析出全部图片，
-可以只挑几张保存，也可以一次全存。保存到 `保存目录/平台/标题/`，按 01、02 命名。
-
-三家取图方式不一样（都实测过）：抖音抓页面大图并按变体去重、小红书读页面状态里的 imageList、
-快手抓 `/atlas/` 图集图（要滚动触发懒加载）。页面里混进来的推荐流会被过滤掉。
-
-## 在客户端设置里打开
-
-重启客户端后，设置左侧会多一项「Everything down」，点进去就是 7788 那个完整工作台
-（内嵌页面，功能一点不少），顶上可以刷新或在新窗口打开。
-
-它靠 `lib/client.js`（浏览器半侧）注册；新增/改动这一半需要重启客户端，只刷页面不生效。
-
-**端口**：默认 7788，被占用会自动往后找（设置页会自动跟随，不用手改书签）。
-想换端口在面板「设置 → 面板端口」里填，改完重启客户端生效。
-
-## 境外平台要开代理
-
-TikTok、YouTube、X、Instagram、Facebook 这些在国内直连不通，需要代理或全局 VPN。
-插件会在解析前先探一下（3.5 秒），连不上就直接告诉你，不用干等：
-
-- **主界面**有一行小字，实时显示境外网络通不通（抖音/快手/B站不受影响）
-- 设置里的「环境依赖」里也有一条「境外网络」
-- 解析失败时文案会区分两种情况：完全没开代理 vs 代理开着但节点被平台限了
-
-国内平台（抖音、快手、小红书、B站、微博）不会被这项检查影响。
-
-## 下载稳定性
-
-- **失败自动重试**：网络类错误引擎内重试 3 次，整条任务再重试 3 次，间隔递增。
-- **断点续传**：先写 `.part`，断了下次从断点接着下（CDN 支持 Range 时）。
-- **直链过期自动恢复**：地址返回 403/404/410，就丢掉旧直链重新解析一次再下。
-- **卡死自愈**：页面嗅探超时会关掉常驻浏览器，下一次解析重新拉起。
-- **端口占用**：7788 被占就往后试几个端口，不直接报错。
-
-## 文字提取
-
-默认**不**自动转写：下载完在队列里点「提取文案」才会转。
-想让每次下载都自动转，去设置里打开「下载后自动提取」。
-
-- 服务商默认「本地」（用 DSH 自带的 SenseVoice，免费不联网）
-- 也可以换 GLM / OpenAI / 硅基流动，填自己的 key
-- 本地模型每段切 110 秒，GLM 只收 30 秒一段
-
-## 作者主页（批量）
-
-面板上有「作者主页」标签：粘一个抖音主页链接（或 App 里「分享主页」的整段文案），
-会把该主页的作品都列出来，勾选后一键下载。
-
-- **未登录只能拿到前几条**（抖音限制，实测主页 10 条只给 5 条）。
-  点「登录抖音」，在弹出来的窗口里扫码，登录态会存在
-  `%USERPROFILE%\.everything-down\chrome`，以后不用再登。
-- 列表是靠浏览器打开页面、截它自己的请求拿的：直接请求
-  `/aweme/v1/web/aweme/post/` 会被 `ArgusSecurityPlugin` 拦成 403。
-- 作品列表里的 `play_addr` 是带音轨的完整 mp4，不用合并。
-- 图文作品目前只统计数量，不下载。
-- 批量下载会去重（同一作品已在队列里就跳过），文件名带作品 id 后 6 位防重名。
-
-## 平台实现
-
-| 平台 | 方式 | 状态 |
-| --- | --- | --- |
-| 抖音 | 无头 Chrome 抓 media-video + media-audio，ffmpeg 合并 | ✅ 稳定 |
-| 快手 | **移动端分享页 + 微信 UA**，直接拿合并好的 mp4 | ✅ 已验收 3/3 |
-| 小红书 | 桌面页嗅探 xhscdn 直链，需带 Referer | ✅ 已验收 |
-| B 站 | 页面嗅探 DASH 双轨合并（yt-dlp 解析 B 站新版页面会失败） | ✅ 未登录最高 480P |
-| YouTube | yt-dlp 直接下载 | ✅ 已验收 |
-| Instagram | yt-dlp | ✅ 已验收（公开帖） |
-| Facebook | yt-dlp | ✅ 已验收（公开视频） |
-| X / Twitter | yt-dlp | ✅ 已验收（公开推文，无需登录） |
-| 小红书 | 桌面页嗅探 | ✅ 已验收（xhslink 短链） |
-| 微博 | yt-dlp 直取（weibocdn 需带 weibo.com Referer） | ✅ 已验收 |
-| TikTok | yt-dlp + 伪装 Chrome 指纹（需能连外网） | ✅ 已验收（720P h264，无预览） |
-
-### 快手为什么必须用移动端 UA
-
-桌面版 `www.kuaishou.com/short-video/{id}` 在未登录时**不播放目标作品**，只播推荐流，
-所以抓到的会是别的视频（实测 3 条全错）。
-
-换成微信 UA 打开分享短链后，会跳转到 `v.m.chenzhongtech.com/fw/photo/{photoId}`，
-页面直接渲染目标作品，`video.currentSrc` 就是无水印 mp4。
-
-## 注意
-
-- **不要按端口杀进程**：7788 由 DeepSeek Harness 宿主持有，按端口杀会打掉客户端。
-  重启用 `powershell -NoProfile -ExecutionPolicy Bypass -File bin\restart.ps1 7801`，
-  它只杀「node.exe 且命令行含 panel.js」的进程。
-- 抖音解析需要 15~20 秒（要等播放器真正起播）。
-
-## 依赖
-
-Chrome、ffmpeg、yt-dlp。
-
-## 性能
-
-解析不再傻等固定时长：
-
-- **浏览器常驻**：第一次启动后复用同一个 Chrome，省掉每次 1~2 秒冷启动
-- **抓够就停**：一旦出现视频流，最多再等 1.2 秒收音轨就返回
-- **移动端即停**：快手拿到 currentSrc 直接返回
-- **冷启动补偿**：浏览器刚起来那一次自动多给 7 秒，避免首屏慢导致失败
-
-实测（本机）：
-
-| 平台 | 解析耗时 |
-| --- | --- |
-| 快手 | 1.7~3.2s |
-| Instagram | 3.4s |
-| 微博 | 6.1s |
-| X | 5.2s |
-| 抖音 | 5~9s（偶发限流会到 15s+） |
-| B站 | 5.9s |
-| 小红书 | 6~7s |
-| YouTube | 2.6s |
-
-B 站曾因先等 yt-dlp 失败（7 秒）再嗅探，总耗时 15.6s；现在直接嗅探。
-
-## 预览
-
-解析结果左侧是可播放的小窗，播放地址走本地代理 `/api/media`：
-抖音/快手 CDN 会校验 Referer 和 UA，浏览器直连会被拒，必须由服务端带对应头转发。
-
-- 快手：合并流，有声音
-- 抖音：音视频分轨，预览只有画面（标了「预览无声」）
-
-代理支持 Range，可以拖动进度条。
-## 打开文件 / 定位（踩过的坑）
-
-- **播放**：`spawn('explorer.exe', [file])` 交给系统默认播放器。
-- **定位**：必须让 **PowerShell 的 Start-Process** 去调 explorer：
-  ```powershell
-  $arg = '/select,"' + $path + '"'
-  Start-Process explorer.exe -ArgumentList $arg
-  ```
-  两个错误示范（都会打开到"文档"或"桌面"）：
-  1. Node 直接 `spawn('explorer.exe', ['/select,"..."'])` —— Windows 命令行会多转义一层；
-  2. Shell.Application COM 的 `Windows()` 遍历 —— 同名窗口一多就抛 `HRESULT E_FAIL`。
-## 外部依赖（不是插件的一部分）
-
-插件本身不打包这三样，需要装在本机：
-
-| 依赖 | 谁需要它 | 缺了怎么办 |
-| --- | --- | --- |
-| **Chrome / Edge** | 抖音、快手、小红书（要开网页抓地址） | 装一个 Chrome |
-| **ffmpeg** | 所有平台的合并、转码、HLS 下载 | `winget install Gyan.FFmpeg` |
-| **yt-dlp** | 微博、B 站等（它是独立的 Python 命令行工具，不是插件） | `winget install yt-dlp` 或 `pip install -U yt-dlp` |
-
-面板「设置 → 环境依赖」会实时显示三项状态；缺失时解析会直接告诉你要装哪个、命令是什么，
-不再是一句含糊的「没找到视频流」。
-## 文字提取（语音转文字）
-
-下载完成后可以把语音转成文字稿，还能导出字幕文件给剪映用。
-
-**默认走本机模型，零配置**：DSH 客户端自带 SenseVoice 语音识别模型（约 233MB，在
-`%USERPROFILE%\.dsh\speech-to-text\sensevoice\models`），插件直接调用它：
-
-- 不花钱
-- 不联网（音频不出这台电脑）
-- 不用填任何 key
-
-如果这台机器没启用本地语音（DSH 设置 → 语音输入），可以在插件设置里换服务商填 key：
-
-| 服务商 | 说明 |
-| --- | --- |
-| GLM（智谱） | `glm-asr-2512`，路径与 OpenAI 一致，你有会员就能用 |
-| OpenAI | 质量好，国内要挂代理 |
-| 硅基流动 | 有免费额度 |
-| 自定义 | 填接口地址 + key，兼容 OpenAI 格式的任何服务 |
-
-> DeepSeek 目前没有语音转写接口，所以不在列表里。
-
-**长音频**：本地和接口都会自动切段。
-
-**产物**：文稿存在 `%USERPROFILE%\.everything-down\transcripts\{任务id}.json`，
-界面里能复制全文、导出 TXT、导出 SRT 字幕。
+<div align="center">
+<sub>English: <a href="./README.en.md">README.en.md</a></sub>
+</div>
