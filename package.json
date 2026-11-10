@@ -1,7 +1,7 @@
 {
   "name": "dsh-everything-down",
-  "version": "0.5.0",
-  "description": "Everything down —— 抖音/快手等短视频无水印下载，带本地面板（单条解析、作者主页批量、下载队列、语音转写）。",
+  "version": "0.6.0",
+  "description": "Everything down —— 抖音/快手/小红书无水印下载，带本地面板（单条解析、作者主页批量、图文、素材库、博主订阅、网购商品图、下载队列、语音转写）。",
   "private": true,
   "type": "module",
   "main": "lib/index.js",
