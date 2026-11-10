@@ -518,14 +518,21 @@ body[data-pane="shop"] .col-main{max-width:1100px;padding-top:28px}
     <div id="paneShop" style="display:none">
       <div class="panehead">
         <div style="flex:1;min-width:0">
-          <div class="lab">网购商品图 · 贴京东商品链接</div>
-          <input class="inp" id="shopInp" placeholder="京东商品链接（3.cn 短链或 item.jd.com）">
+          <div class="lab">网购商品图 · 淘宝 / 京东 / 拼多多</div>
+          <input class="inp" id="shopInp" placeholder="贴商品链接（三家都行，分享文案也能识别）">
         </div>
         <div class="acts">
           <button class="btn pri" id="shopGo">解析商品</button>
         </div>
       </div>
-      <div class="hint" id="shopTip">目前支持京东；淘宝、拼多多需要登录，稍后再加</div>
+      <div class="loginbar" id="shopLoginBar">
+        <span id="shopLoginTxt">淘宝、拼多多要登录才看得到商品页；京东不用登录</span>
+        <span style="margin-left:auto;display:flex;gap:8px;flex:0 0 auto">
+          <button class="btn mini" id="shopLoginTb">登录淘宝</button>
+          <button class="btn mini" id="shopLoginPdd">登录拼多多</button>
+        </span>
+      </div>
+      <div class="hint" id="shopTip">贴链接 → 解析商品 → 勾选要的图和视频 → 下载选中。图片自动拿原图。</div>
       <div id="shopHead"></div>
       <div id="shopBar"></div>
       <div class="libgrid" id="shopGrid"></div>
@@ -1303,6 +1310,7 @@ $('tabs').onclick = function (e) {
   $('paneLibrary').style.display = which === 'library' ? '' : 'none'
   $('paneSubs').style.display = which === 'subs' ? '' : 'none'
   $('paneShop').style.display = which === 'shop' ? '' : 'none'
+  if (which === 'shop') shopLoginCheck()
   if (which === 'author') checkAuthorLogin()
   if (which === 'library') loadLibrary()
   if (which === 'subs') { loadSubs(); refreshLoginBar() }
@@ -1714,18 +1722,49 @@ if ($('libCats')) $('libCats').onclick = function (e) {
 
 if ($('libSearch')) $('libSearch').oninput = function () { libState.q = this.value; renderLibrary() }
 
-// ---------------------------------------------------------------- 网购商品（京东）
+// ---------------------------------------------------------------- 网购商品（淘宝 / 京东 / 拼多多）
 var shopState = { data: null, sel: {} }
+
+$('shopLoginTb').onclick = function () { shopLogin('taobao') }
+$('shopLoginPdd').onclick = function () { shopLogin('pdd') }
+
+function shopLogin(which) {
+  toast((which === 'pdd' ? '拼多多' : '淘宝') + '登录窗口正在打开…扫码后回来点「重新解析」')
+  api('/api/shop/login', { which: which }).then(function (r) {
+    if (!r.ok) toast(r.message || '登录窗口打不开')
+  }).catch(function () { toast('登录窗口打不开') })
+}
+
+function shopLoginPaint(st) {
+  var bar = $('shopLoginBar'), txt = $('shopLoginTxt')
+  if (!bar || !txt) return
+  if (st && st.known) {
+    var a = st.taobao, b = st.pdd
+    if (a && b) { bar.className = 'loginbar ok'; txt.textContent = '✓ 淘宝、拼多多都已登录'; return }
+    if (a) { bar.className = 'loginbar'; txt.textContent = '✓ 淘宝已登录；拼多多还没登录（点右边）'; return }
+    if (b) { bar.className = 'loginbar'; txt.textContent = '✓ 拼多多已登录；淘宝还没登录（点右边）'; return }
+    bar.className = 'loginbar warn'
+    txt.textContent = '淘宝、拼多多都没登录，解析会被要求登录'
+    return
+  }
+  bar.className = 'loginbar'
+  txt.textContent = '淘宝、拼多多要登录才看得到商品页；京东不用登录'
+}
+
+function shopLoginCheck() {
+  api('/api/shop/state').then(function (r) { shopLoginPaint(r) }).catch(function () {})
+}
 
 $('shopGo').onclick = function () {
   var v = $('shopInp').value.trim()
-  if (!v) { toast('先粘贴京东商品链接'); return }
+  if (!v) { toast('先粘贴商品链接'); return }
   $('shopGo').disabled = true; $('shopGo').textContent = '解析中…'
   $('shopHead').innerHTML = ''; $('shopBar').innerHTML = ''; $('shopGrid').innerHTML = ''
   api('/api/shop/parse', { url: v }).then(function (r) {
     if (!r.ok) { toast(r.message || '解析失败'); return }
     shopState = { data: r, sel: {} }
     renderShop()
+    shopLoginCheck()
   }).catch(function () { toast('解析失败') })
     .then(function () { $('shopGo').disabled = false; $('shopGo').textContent = '解析商品' })
 }
@@ -1736,7 +1775,7 @@ function renderShop() {
   var imgs = d.images || []
   var vids = d.videos || []
   $('shopHead').innerHTML = '<div class="ahead"><div style="flex:1;min-width:0">'
-    + '<div class="an">' + esc(String(d.title || '京东商品').slice(0, 50)) + '</div>'
+    + '<div class="an">' + esc(String(d.title || '商品').slice(0, 50)) + '</div>'
     + '<div class="as">京东 · 图片 ' + imgs.length + ' 张 · 视频 ' + vids.length + ' 个</div></div></div>'
   $('shopBar').innerHTML = '<div class="abar">'
     + '<span class="cnt">已选 <b id="shopSelCnt">0</b> / ' + (imgs.length + vids.length) + '</span>'
