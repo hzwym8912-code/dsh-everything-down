@@ -71,7 +71,9 @@ h1,h2,h3{margin:0}
 .col-main{max-width:840px;margin:0 auto;padding:0 24px 56px;overflow:visible;min-width:0}
 body[data-pane="author"] .col-ticket,body[data-pane="gallery"] .col-ticket,body[data-pane="library"] .col-ticket,body[data-pane="subs"] .col-ticket{display:none}
 body[data-pane="author"] .col-main,body[data-pane="gallery"] .col-main,body[data-pane="library"] .col-main,body[data-pane="subs"] .col-main{max-width:1100px;padding-top:28px}
-body[data-pane="gallery"] .queue-sec,body[data-pane="library"] .queue-sec,body[data-pane="subs"] .queue-sec{display:none}
+body[data-pane="gallery"] .queue-sec,body[data-pane="library"] .queue-sec,body[data-pane="subs"] .queue-sec,body[data-pane="shop"] .queue-sec{display:none}
+body[data-pane="shop"] .col-ticket{display:none}
+body[data-pane="shop"] .col-main{max-width:1100px;padding-top:28px}
 
 /* ── 首页标语 ── */
 .hero{padding:6px 4px 22px}
@@ -260,6 +262,8 @@ body[data-pane="gallery"] .queue-sec,body[data-pane="library"] .queue-sec,body[d
 .lbody{padding:10px 12px}
 .ltitle{font-size:13px;font-weight:600;line-height:1.4;color:var(--ink);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .lmeta{font-size:11px;color:var(--ink3);margin-top:5px}
+.shopcell.sel{border-color:var(--accent)}
+.shopcell.sel:after{content:"";position:absolute;inset:0;border:3px solid var(--accent);pointer-events:none;z-index:4;border-radius:12px}
 .libcats{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
 .libsel{margin-top:8px;width:100%;border:1px solid var(--line);background:var(--line-soft);color:var(--ink2);font-size:11.5px;padding:5px 8px;border-radius:7px;outline:none;font-family:inherit}
 
@@ -384,6 +388,7 @@ body[data-pane="gallery"] .queue-sec,body[data-pane="library"] .queue-sec,body[d
       <button data-t="author" role="tab" aria-selected="false">作者主页</button>
       <button data-t="gallery" role="tab" aria-selected="false">图文</button>
       <button data-t="library" role="tab" aria-selected="false">素材库</button>
+      <button data-t="shop" role="tab" aria-selected="false">网购</button>
       <button data-t="subs" role="tab" aria-selected="false">订阅</button>
     </nav>
     <div class="sp"></div>
@@ -508,6 +513,22 @@ body[data-pane="gallery"] .queue-sec,body[data-pane="library"] .queue-sec,body[d
       <div class="libcats" id="libCats"></div>
       <div class="hint" id="libCount"></div>
       <div class="libgrid" id="libGrid"></div>
+    </div>
+
+    <div id="paneShop" style="display:none">
+      <div class="panehead">
+        <div style="flex:1;min-width:0">
+          <div class="lab">网购商品图 · 贴京东商品链接</div>
+          <input class="inp" id="shopInp" placeholder="京东商品链接（3.cn 短链或 item.jd.com）">
+        </div>
+        <div class="acts">
+          <button class="btn pri" id="shopGo">解析商品</button>
+        </div>
+      </div>
+      <div class="hint" id="shopTip">目前支持京东；淘宝、拼多多需要登录，稍后再加</div>
+      <div id="shopHead"></div>
+      <div id="shopBar"></div>
+      <div class="libgrid" id="shopGrid"></div>
     </div>
 
     <div id="paneSubs" style="display:none">
@@ -1281,6 +1302,7 @@ $('tabs').onclick = function (e) {
   $('paneGallery').style.display = which === 'gallery' ? '' : 'none'
   $('paneLibrary').style.display = which === 'library' ? '' : 'none'
   $('paneSubs').style.display = which === 'subs' ? '' : 'none'
+  $('paneShop').style.display = which === 'shop' ? '' : 'none'
   if (which === 'author') checkAuthorLogin()
   if (which === 'library') loadLibrary()
   if (which === 'subs') { loadSubs(); refreshLoginBar() }
@@ -1691,6 +1713,99 @@ if ($('libCats')) $('libCats').onclick = function (e) {
 }
 
 if ($('libSearch')) $('libSearch').oninput = function () { libState.q = this.value; renderLibrary() }
+
+// ---------------------------------------------------------------- 网购商品（京东）
+var shopState = { data: null, sel: {} }
+
+$('shopGo').onclick = function () {
+  var v = $('shopInp').value.trim()
+  if (!v) { toast('先粘贴京东商品链接'); return }
+  $('shopGo').disabled = true; $('shopGo').textContent = '解析中…'
+  $('shopHead').innerHTML = ''; $('shopBar').innerHTML = ''; $('shopGrid').innerHTML = ''
+  api('/api/shop/parse', { url: v }).then(function (r) {
+    if (!r.ok) { toast(r.message || '解析失败'); return }
+    shopState = { data: r, sel: {} }
+    renderShop()
+  }).catch(function () { toast('解析失败') })
+    .then(function () { $('shopGo').disabled = false; $('shopGo').textContent = '解析商品' })
+}
+
+function renderShop() {
+  var d = shopState.data
+  if (!d) return
+  var imgs = d.images || []
+  var vids = d.videos || []
+  $('shopHead').innerHTML = '<div class="ahead"><div style="flex:1;min-width:0">'
+    + '<div class="an">' + esc(String(d.title || '京东商品').slice(0, 50)) + '</div>'
+    + '<div class="as">京东 · 图片 ' + imgs.length + ' 张 · 视频 ' + vids.length + ' 个</div></div></div>'
+  $('shopBar').innerHTML = '<div class="abar">'
+    + '<span class="cnt">已选 <b id="shopSelCnt">0</b> / ' + (imgs.length + vids.length) + '</span>'
+    + '<button class="btn mini" id="shopAll">全选</button>'
+    + '<button class="btn mini" id="shopNone">清空</button>'
+    + '<span style="flex:1"></span>'
+    + '<button class="btn primary" id="shopDl">下载选中</button>'
+    + '</div>'
+  var html = ''
+  for (var i = 0; i < imgs.length; i++) {
+    var im = imgs[i]
+    html += '<div class="libcell shopcell" data-k="img_' + i + '">'
+      + '<div class="lthumb"><img loading="lazy" src="' + esc(im.url) + '" referrerpolicy="no-referrer"></div>'
+      + '<div class="lbody"><div class="ltitle">图片 ' + (i + 1) + '</div>'
+      + '<div class="lmeta">' + (im.w || '?') + '×' + (im.h || '?') + '</div></div></div>'
+  }
+  for (var j = 0; j < vids.length; j++) {
+    var vd = vids[j]
+    html += '<div class="libcell shopcell" data-k="vid_' + j + '">'
+      + '<div class="lthumb"><video src="' + esc(vd.url) + '" muted preload="metadata"></video>'
+      + (vd.duration ? '<span class="ldur">' + vd.duration + 's</span>' : '') + '</div>'
+      + '<div class="lbody"><div class="ltitle">视频 ' + (j + 1) + '</div>'
+      + '<div class="lmeta">' + (vd.width || '?') + '×' + (vd.height || '?') + '</div></div></div>'
+  }
+  $('shopGrid').innerHTML = html
+  var cells = $('shopGrid').querySelectorAll('.shopcell')
+  for (var k = 0; k < cells.length; k++) {
+    cells[k].onclick = function () {
+      var key = this.getAttribute('data-k')
+      if (shopState.sel[key]) delete shopState.sel[key]; else shopState.sel[key] = 1
+      this.classList.toggle('sel', !!shopState.sel[key])
+      var c = $('shopSelCnt'); if (c) c.textContent = Object.keys(shopState.sel).length
+    }
+  }
+  $('shopAll').onclick = function () {
+    shopState.sel = {}
+    for (var a = 0; a < imgs.length; a++) shopState.sel['img_' + a] = 1
+    for (var b = 0; b < vids.length; b++) shopState.sel['vid_' + b] = 1
+    paintShop()
+  }
+  $('shopNone').onclick = function () { shopState.sel = {}; paintShop() }
+  $('shopDl').onclick = downloadShop
+}
+
+function paintShop() {
+  var cells = $('shopGrid').querySelectorAll('.shopcell')
+  for (var i = 0; i < cells.length; i++) {
+    cells[i].classList.toggle('sel', !!shopState.sel[cells[i].getAttribute('data-k')])
+  }
+  var c = $('shopSelCnt'); if (c) c.textContent = Object.keys(shopState.sel).length
+}
+
+function downloadShop() {
+  var d = shopState.data
+  if (!d) return
+  var imgs = [], vids = []
+  var keys = Object.keys(shopState.sel)
+  if (!keys.length) { toast('先勾选要下的图或视频'); return }
+  for (var i = 0; i < keys.length; i++) {
+    var k = keys[i]
+    if (k.indexOf('img_') === 0) { var a = Number(k.slice(4)); if (d.images[a]) imgs.push(d.images[a]) }
+    if (k.indexOf('vid_') === 0) { var b = Number(k.slice(4)); if (d.videos[b]) vids.push(d.videos[b]) }
+  }
+  toast('开始下载 ' + (imgs.length + vids.length) + ' 个…')
+  api('/api/shop/download', { title: d.title, images: imgs, videos: vids }).then(function (r) {
+    if (!r.ok) { toast(r.message || '下载失败'); return }
+    toast('已存 ' + r.saved + ' 个到 ' + r.dir)
+  }).catch(function () { toast('下载失败') })
+}
 
 // ---------------------------------------------------------------- 博主订阅
 var subState = { subs: [], fresh: {}, checking: false }
