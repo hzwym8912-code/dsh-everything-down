@@ -532,7 +532,7 @@ body[data-pane="shop"] .col-main{max-width:1100px;padding-top:28px}
           <button class="btn mini" id="shopLoginPdd">登录拼多多</button>
         </span>
       </div>
-      <div class="hint" id="shopTip">贴链接 → 解析商品 → 勾选要的图和视频 → 下载选中。图片自动拿原图。</div>
+      <div class="hint" id="shopTip">贴链接 → 解析商品 → 勾选要的图和视频 → 下载选中。淘宝、拼多多要先登录；电脑挂着 VPN 时扫码会被淘宝当成异地登录（手机端还会被踢下线），先关掉 VPN 再扫。</div>
       <div id="shopHead"></div>
       <div id="shopBar"></div>
       <div class="libgrid" id="shopGrid"></div>
@@ -1724,35 +1724,55 @@ if ($('libSearch')) $('libSearch').oninput = function () { libState.q = this.val
 
 // ---------------------------------------------------------------- 网购商品（淘宝 / 京东 / 拼多多）
 var shopState = { data: null, sel: {} }
+var netInfo = null
+var lastState = null
 
 $('shopLoginTb').onclick = function () { shopLogin('taobao') }
 $('shopLoginPdd').onclick = function () { shopLogin('pdd') }
 
 function shopLogin(which) {
-  toast((which === 'pdd' ? '拼多多' : '淘宝') + '登录窗口正在打开…扫码后回来点「重新解析」')
-  api('/api/shop/login', { which: which }).then(function (r) {
-    if (!r.ok) toast(r.message || '登录窗口打不开')
+  var name = which === 'pdd' ? '拼多多' : '淘宝'
+  api('/api/net/check').then(function (n) {
+    netInfo = n || null
+    if (n && n.abroad) {
+      toast('⚠ 你现在走境外网络（' + (n.country || '国外') + '），' + name + '会当成异地登录，可能扫完就被踢。建议先关 VPN 再扫；窗口还是给你打开了')
+    } else {
+      toast(name + '登录窗口正在打开…扫完回来点「重新解析」')
+    }
+    shopLoginPaint(lastState)
+    return api('/api/shop/login', { which: which })
+  }).then(function (r) {
+    if (r && !r.ok) toast(r.message || '登录窗口打不开')
   }).catch(function () { toast('登录窗口打不开') })
 }
 
 function shopLoginPaint(st) {
   var bar = $('shopLoginBar'), txt = $('shopLoginTxt')
   if (!bar || !txt) return
+  if (st) lastState = st
+  var abroad = netInfo && netInfo.abroad
+  var vpn = abroad ? '　⚠ 你现在是境外网络（' + (netInfo.country || '国外') + '），淘宝扫码会被判异地，手机端还会被踢，先关 VPN 再扫' : ''
   if (st && st.known) {
     var a = st.taobao, b = st.pdd
-    if (a && b) { bar.className = 'loginbar ok'; txt.textContent = '✓ 淘宝、拼多多都已登录'; return }
-    if (a) { bar.className = 'loginbar'; txt.textContent = '✓ 淘宝已登录；拼多多还没登录（点右边）'; return }
-    if (b) { bar.className = 'loginbar'; txt.textContent = '✓ 拼多多已登录；淘宝还没登录（点右边）'; return }
+    if (a && b) { bar.className = abroad ? 'loginbar warn' : 'loginbar ok'; txt.textContent = (abroad ? '' : '✓ ') + '淘宝、拼多多都已登录' + vpn; return }
+    if (a) { bar.className = 'loginbar'; txt.textContent = '✓ 淘宝已登录；拼多多还没登录（点右边）' + vpn; return }
+    if (b) { bar.className = 'loginbar'; txt.textContent = '✓ 拼多多已登录；淘宝还没登录（点右边）' + vpn; return }
     bar.className = 'loginbar warn'
-    txt.textContent = '淘宝、拼多多都没登录，解析会被要求登录'
+    txt.textContent = '淘宝、拼多多都没登录，解析会被要求登录' + vpn
     return
   }
-  bar.className = 'loginbar'
-  txt.textContent = '淘宝、拼多多要登录才看得到商品页；京东不用登录'
+  bar.className = abroad ? 'loginbar warn' : 'loginbar'
+  txt.textContent = '淘宝、拼多多要登录才看得到商品页；京东不用登录' + vpn
 }
 
 function shopLoginCheck() {
-  api('/api/shop/state').then(function (r) { shopLoginPaint(r) }).catch(function () {})
+  Promise.all([
+    api('/api/shop/state').catch(function () { return null }),
+    api('/api/net/check').catch(function () { return null })
+  ]).then(function (arr) {
+    if (arr[1]) netInfo = arr[1]
+    shopLoginPaint(arr[0])
+  })
 }
 
 $('shopGo').onclick = function () {
