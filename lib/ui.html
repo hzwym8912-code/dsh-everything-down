@@ -277,6 +277,7 @@ body[data-pane="shop"] .foot{display:none}
 .shoplogrow .t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px}
 .shoplogrow .m{flex:0 1 auto;font-family:var(--mono);font-size:11px;color:var(--ink3);max-width:420px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .libcats{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
+#shopPlats{margin:0 0 12px}
 .libsel{margin-top:8px;width:100%;border:1px solid var(--line);background:var(--line-soft);color:var(--ink2);font-size:11.5px;padding:5px 8px;border-radius:7px;outline:none;font-family:inherit}
 
 /* 订阅 */
@@ -544,7 +545,8 @@ body[data-pane="shop"] .foot{display:none}
           <button class="btn mini" id="shopLoginPdd">登录拼多多</button>
         </span>
       </div>
-      <div class="hint" id="shopTip">贴链接 → 解析商品 → 勾选要的图和视频 → 下载选中。淘宝、拼多多要先登录；电脑挂着 VPN 时扫码会被淘宝当成异地登录（手机端还会被踢下线），先关掉 VPN 再扫。</div>
+      <div class="libcats" id="shopPlats"></div>
+      <div class="hint" id="shopTip">贴链接 → 解析商品 → 勾选要的图和视频 → 下载选中。</div>
       <div class="shopdir">
         <span>保存到</span>
         <span class="p" id="shopDirText">读取中…</span>
@@ -756,7 +758,9 @@ function hsize(n) {
 function platLabel(p) {
   return ({ douyin: '抖音', kuaishou: '快手', xhs: '小红书', bilibili: 'B站', weibo: '微博',
     youtube: 'YouTube', tiktok: 'TikTok', x: 'X', instagram: 'Instagram', facebook: 'Facebook',
-    xigua: '西瓜视频', other: '其它' })[p] || '其它';
+    xigua: '西瓜视频', taobao: '淘宝', tmall: '天猫', jd: '京东', pdd: '拼多多', shopee: 'Shopee',
+    lazada: 'Lazada', aliexpress: '速卖通', amazon: '亚马逊', temu: 'Temu', shein: 'SHEIN',
+    other: '其它' })[p] || '其它';
 }
 
 function renderPath() {
@@ -1328,7 +1332,7 @@ $('tabs').onclick = function (e) {
   $('paneLibrary').style.display = which === 'library' ? '' : 'none'
   $('paneSubs').style.display = which === 'subs' ? '' : 'none'
   $('paneShop').style.display = which === 'shop' ? '' : 'none'
-  if (which === 'shop') { shopLoginCheck(); loadShopDir() }
+  if (which === 'shop') { renderShopPlats(); shopLoginCheck(); loadShopDir() }
   if (which === 'author') checkAuthorLogin()
   if (which === 'library') loadLibrary()
   if (which === 'subs') { loadSubs(); refreshLoginBar() }
@@ -1745,6 +1749,54 @@ var shopState = { data: null, sel: {} }
 var netInfo = null
 var lastState = null
 var shopLog = []
+var shopPlat = ''
+
+var SHOP_PLATFORMS = [
+  { k: '', label: '全部', ph: '贴商品链接（淘宝、京东、拼多多都行，分享文案也能识别）',
+    tip: '贴链接 → 解析商品 → 勾选要的图和视频 → 下载选中。淘宝、拼多多要先登录；电脑挂 VPN 时扫码会被判异地，先关掉再扫。' },
+  { k: 'taobao', label: '淘宝/天猫', ph: '贴淘宝/天猫商品链接，或整段分享文案',
+    tip: '淘宝、天猫要扫码登录一次；商品图能抓全（自动拿原图），商品视频多半抓不到（淘宝风控限制）。' },
+  { k: 'jd', label: '京东', ph: '贴京东商品链接（3.cn 短链也行）',
+    tip: '京东不用登录，商品图和商品视频都能抓。' },
+  { k: 'pdd', label: '拼多多', ph: '贴拼多多商品链接，或分享文案',
+    tip: '拼多多要扫码登录一次；商品图能抓，视频看这个商品本身有没有。' }
+]
+
+function shopPlatDef(k) {
+  for (var i = 0; i < SHOP_PLATFORMS.length; i++) if (SHOP_PLATFORMS[i].k === k) return SHOP_PLATFORMS[i]
+  return SHOP_PLATFORMS[0]
+}
+
+function renderShopPlats() {
+  var box = $('shopPlats')
+  if (!box) return
+  var h = ''
+  for (var i = 0; i < SHOP_PLATFORMS.length; i++) {
+    var p = SHOP_PLATFORMS[i]
+    h += '<button class="pf' + (shopPlat === p.k ? ' sel' : '') + '" data-p="' + p.k + '">' + p.label + '</button>'
+  }
+  box.innerHTML = h
+  var bs = box.querySelectorAll('.pf')
+  for (var j = 0; j < bs.length; j++) {
+    bs[j].onclick = function () { pickShopPlat(this.getAttribute('data-p')) }
+  }
+}
+
+function pickShopPlat(k) {
+  shopPlat = k
+  var d = shopPlatDef(k)
+  if ($('shopTip')) $('shopTip').textContent = d.tip
+  if ($('shopInp')) $('shopInp').placeholder = d.ph
+  renderShopPlats()
+  renderShopLog()
+  // 当前解析结果不是这个平台就清掉，免得看着以为能直接下
+  if (shopState.data && shopState.data.platform && k && shopState.data.platform !== k) {
+    shopState = { data: null, sel: {} }
+    $('shopHead').innerHTML = ''
+    $('shopBar').innerHTML = ''
+    $('shopGrid').innerHTML = '<div class="empty" style="grid-column:1/-1"><b>已切到 ' + d.label + '</b>贴一条' + d.label + '的商品链接，点「解析商品」</div>'
+  }
+}
 
 function loadShopDir() {
   api('/api/settings').then(function (r) {
@@ -1778,13 +1830,16 @@ $('shopDirOpen').onclick = function () {
 function renderShopLog() {
   var box = $('shopLog')
   if (!box) return
-  if (!shopLog.length) { box.innerHTML = ''; return }
-  var h = '<div class="qhead"><h2>下载记录</h2><span class="cnt">' + shopLog.length + '</span><span class="sp"></span></div>'
-  for (var i = 0; i < shopLog.length; i++) {
-    var r = shopLog[i]
+  var list = shopLog.filter(function (r) { return !shopPlat || r.platform === shopPlat })
+  if (!list.length) { box.innerHTML = ''; return }
+  var h = '<div class="qhead"><h2>下载记录</h2><span class="cnt">' + list.length + '</span>'
+    + (shopPlat ? '<span class="sub">· ' + shopPlatDef(shopPlat).label + '</span>' : '')
+    + '<span class="sp"></span></div>'
+  for (var i = 0; i < list.length; i++) {
+    var r = list[i]
     h += '<div class="shoplogrow">'
       + '<span class="t" title="' + esc(r.title) + '">' + esc(r.title) + '</span>'
-      + '<span class="m">成功 ' + r.saved + ' · 失败 ' + r.failed + '</span>'
+      + '<span class="m">' + esc(platLabel(r.platform)) + ' · 成功 ' + r.saved + ' · 失败 ' + r.failed + '</span>'
       + '<button class="btn mini" data-open="' + esc(r.dir) + '">打开文件夹</button>'
       + '</div>'
   }
@@ -1867,6 +1922,15 @@ function renderShop() {
   var imgs = d.images || []
   var vids = d.videos || []
   var platName = d.platform === 'taobao' ? '淘宝/天猫' : (d.platform === 'pdd' ? '拼多多' : (d.platform === 'jd' ? '京东' : '商品'))
+  // 解析出哪个平台，顶部标签自动切过去
+  if (d.platform) {
+    shopPlat = d.platform
+    var pd = shopPlatDef(d.platform)
+    if ($('shopTip')) $('shopTip').textContent = pd.tip
+    if ($('shopInp')) $('shopInp').placeholder = pd.ph
+    renderShopPlats()
+    renderShopLog()
+  }
   $('shopHead').innerHTML = '<div class="shopinfo">'
     + '<div class="si-title">' + esc(String(d.title || '商品').slice(0, 80)) + '</div>'
     + '<div class="si-meta">' + platName + ' · 图片 ' + imgs.length + ' 张 · 视频 ' + vids.length + ' 个' + (vids.length ? '' : '（这个商品没抓到视频）') + '</div>'
@@ -1939,7 +2003,7 @@ function downloadShop() {
   toast('开始下载 ' + total + ' 个…下载时会逐个保存，别关页面')
   api('/api/shop/download', { title: d.title, images: imgs, videos: vids }).then(function (r) {
     if (!r.ok) { toast(r.message || '下载失败'); return }
-    shopLog.unshift({ title: d.title, saved: r.saved, failed: r.failed, dir: r.dir, at: Date.now() })
+    shopLog.unshift({ title: d.title, platform: d.platform, saved: r.saved, failed: r.failed, dir: r.dir, at: Date.now() })
     if (shopLog.length > 10) shopLog.length = 10
     renderShopLog()
     toast('存好了：成功 ' + r.saved + ' 个，失败 ' + r.failed + ' 个')
